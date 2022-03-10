@@ -2,7 +2,7 @@
 # My creepers
 
 ## shakespeare
-Downloading all the works written by Shakespeare in text
+Download all the works written by Shakespeare in text
 ### How to use it
 ```bash
 # run
