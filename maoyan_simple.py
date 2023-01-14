@@ -1,3 +1,4 @@
+# 简单版本的，没有进行验证的爬取猫眼电影
 import requests
 import time
 from lxml import etree

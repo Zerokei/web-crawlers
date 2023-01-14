@@ -1,4 +1,5 @@
-# 完备的爬取猫眼电影
+# 这个是单独访问他的验证中心，探究 selenium 是否正常运行了
+
 from lxml import etree
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,67 +12,8 @@ from selenium.webdriver import ActionChains
 import requests
 from io import BytesIO
 
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.76',
-}
-
-pages = []  # 存储每一页的 HTML
-top_movies = []  # 从 HTML 中提取数据
-
-def set_pages():
-    for i in range(10):
-        response = requests.get('https://www.maoyan.com/board/4?offset={}'.format(i * 10), headers=headers)
-        html = etree.HTML(response.text)
-        title = html.xpath('//title/text()')[0]
-        if title == '猫眼验证中心':
-            crack = MaoYanVerifyCenter('https://www.maoyan.com/board/4?offset={}'.format(i * 10))
-            pages.append(crack.login())
-        else:
-            pages.append(response.text)
-        print("Page {} finish".format(i + 1))
-        # 如果出现了 html 解析错误，可以使用下面的代码保存每一页的 HTML
-        # open('page_{}_content.txt'.format(i), 'w').close()
-        # with open('page_{}_content.txt'.format(i), 'a', encoding='utf-8') as f:
-        #     print(pages[i], file=f)
-        time.sleep(1)
-    # 间隔 1 秒时间，防止过于频繁
-
-
-def extract_data():
-    for i in range(10):
-        extract_element(pages[i])
-
-
-def extract_element(text):
-    # print(text)
-    html = etree.HTML(text)
-    # 提取各种元素
-    numbers = html.xpath('//div[@class="content"]/div/div/dl/dd/i/text()')
-    movies = html.xpath('//div[@class="content"]/div/div/dl/dd/div/div/div/p/a/text()')
-    stars = html.xpath('//div[@class="content"]/div/div/dl/dd/div/div/div/p[@class="star"]/text()')
-    releasetimes = html.xpath('//div[@class="content"]/div/div/dl/dd/div/div/div/p[@class="releasetime"]/text()')
-    scores_interger = html.xpath('//div[@class="content"]/div/div/dl/dd/div/div/div/p[@class="score"]/i[@class="integer"]/text()')
-    scores_fraction = html.xpath('//div[@class="content"]/div/div/dl/dd/div/div/div/p[@class="score"]/i[@class="fraction"]/text()')
-    for i in range(10):
-        movie = []
-        movie.append(numbers[i])
-        movie.append(movies[i])
-        movie.append(stars[i].replace('\n', '').strip())
-        movie.append(releasetimes[i])
-        movie.append(scores_interger[i] + scores_fraction[i])
-        # 加入top movies列表中
-        top_movies.append(movie)
-
-
-def save_data():
-    open('top_100.txt', 'w').close()
-    for i in range(100):
-        with open('top_100.txt', 'a', encoding='utf-8')as f:
-            print(top_movies[i], file=f)
-
-
-class MaoYanVerifyCenter(object):
-    def __init__(self,inputUrl):
+class MaoYanCode(object):
+    def __init__(self,inputUrl):    # 初始化
         self.url = inputUrl
         ChromeOptions = webdriver.ChromeOptions()
         ChromeOptions.add_argument('--ignore-certificate-errors') # 减少一些奇怪的报错
@@ -184,15 +126,12 @@ class MaoYanVerifyCenter(object):
         # 等待所有都加载完，获得当前页面 html
         time.sleep(10)
         html = self.browser.page_source
-        self.browser.close()
         return html
 
-
 def main():
-    set_pages()
-    extract_data()
-    save_data()
-
+    spider = MaoYanCode('https://tfz.maoyan.com/yamaha/verify#/')
+    html = spider.login()
+    # print(html)
 
 if __name__ == '__main__':
     main()
